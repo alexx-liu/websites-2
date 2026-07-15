@@ -1,0 +1,42 @@
+---
+title: "Billboard Graphic"
+execute:
+  echo: false
+---
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+```{r}
+billboard |>
+	mutate(chart_weeks = rowSums(!is.na(across(starts_with("wk"))))) |>
+	slice_max(chart_weeks, n = 5, with_ties = FALSE) |>
+	mutate(song = paste(artist, track, sep = " - ")) |>
+	select(song, starts_with("wk")) |>
+	pivot_longer(
+		starts_with("wk"),
+		names_to = "week",
+		values_to = "rank",
+		names_prefix = "wk"
+	) |>
+	mutate(week = as.integer(week)) |>
+	drop_na(rank) |>
+	ggplot(aes(week, rank)) +
+	geom_line(color = "#1f77b4", linewidth = 1.1) +
+	geom_point(color = "#ff7f0e", size = 1.4) +
+	facet_wrap(~ song, ncol = 1) +
+	scale_y_reverse() +
+	labs(
+		title = "How long the biggest Billboard hits stayed on the chart",
+		subtitle = "Each panel shows one song's weekly rank; smaller numbers mean a better chart position.",
+		x = "Week on chart",
+		y = "Billboard rank"
+	) +
+	theme_minimal(base_size = 12) +
+	theme(
+		panel.grid.minor = element_blank(),
+		strip.text = element_text(face = "bold"),
+		plot.title = element_text(face = "bold")
+	)
+```
